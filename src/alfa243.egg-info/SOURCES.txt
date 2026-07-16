@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/alfa243/__init__.py
+src/alfa243/__main__.py
+src/alfa243/version.py
+src/alfa243.egg-info/PKG-INFO
+src/alfa243.egg-info/SOURCES.txt
+src/alfa243.egg-info/dependency_links.txt
+src/alfa243.egg-info/top_level.txt
+src/alfa243/core/kernel.py
+src/alfa243/models/market_engine.py
