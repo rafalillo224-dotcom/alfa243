@@ -1,3 +1,4 @@
+from alfa243.cli.console import show_prediction
 from alfa243.core.kernel import run
 
 from alfa243.domain.match import Match
@@ -7,6 +8,7 @@ from alfa243.services.match_statistics import MatchStatistics
 
 
 def main():
+
     run()
 
     match = Match(
@@ -19,38 +21,25 @@ def main():
 
     market = MarketEngine().predict(match)
 
-    poisson = PoissonEngine().predict(
+    poisson_engine = PoissonEngine()
+
+    poisson = poisson_engine.predict(
         home_expected_goals=1.80,
         away_expected_goals=1.10,
     )
 
-    matrix = PoissonEngine.score_matrix(
+    matrix = poisson_engine.score_matrix(
         home_expected_goals=1.80,
         away_expected_goals=1.10,
     )
 
-    score = MatchStatistics.most_likely_score(matrix)
+    top_scores = MatchStatistics.top_scores(matrix)
 
-    print()
-    print(f"Partido: {match.home_team} vs {match.away_team}")
-
-    print()
-    print("=== Mercado ===")
-    print(f"Local      {market.home:.2%}")
-    print(f"Empate     {market.draw:.2%}")
-    print(f"Visitante  {market.away:.2%}")
-
-    print()
-    print("=== Poisson ===")
-    print(f"Local      {poisson.home:.2%}")
-    print(f"Empate     {poisson.draw:.2%}")
-    print(f"Visitante  {poisson.away:.2%}")
-
-    print()
-    print("=== Marcador más probable ===")
-    print(
-        f"{score.home_goals}-{score.away_goals} "
-        f"({score.probability:.2%})"
+    show_prediction(
+        match=match,
+        market=market,
+        poisson=poisson,
+        top_scores=top_scores,
     )
 
 
