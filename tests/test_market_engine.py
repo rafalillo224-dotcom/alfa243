@@ -11,7 +11,8 @@ def test_market_probabilities_sum_to_one():
         away_odds=3.20,
     )
 
-    result = MarketEngine.calculate(match)
+    engine = MarketEngine()
+    result = engine.predict(match)
 
     total = result.home + result.draw + result.away
 

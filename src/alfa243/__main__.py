@@ -1,8 +1,9 @@
 from alfa243.core.kernel import run
+
 from alfa243.domain.match import Match
-from alfa243.domain.prediction import Prediction
 from alfa243.engines.market import MarketEngine
-from alfa243.engines.value import ValueEngine
+from alfa243.engines.poisson import PoissonEngine
+from alfa243.services.match_statistics import MatchStatistics
 
 
 def main():
@@ -16,44 +17,41 @@ def main():
         away_odds=3.20,
     )
 
-    market = MarketEngine.calculate(match)
+    market = MarketEngine().predict(match)
 
-    # Modelo de ejemplo (más adelante será Poisson, Elo o Fusion)
-    model = Prediction(
-        source="demo",
-        home=0.48,
-        draw=0.25,
-        away=0.27,
-        confidence=0.82,
+    poisson = PoissonEngine().predict(
+        home_expected_goals=1.80,
+        away_expected_goals=1.10,
     )
 
-    value = ValueEngine.evaluate(
-        market=market,
-        model=model,
-        outcome="home",
-        odds=match.home_odds,
+    matrix = PoissonEngine.score_matrix(
+        home_expected_goals=1.80,
+        away_expected_goals=1.10,
     )
+
+    score = MatchStatistics.most_likely_score(matrix)
 
     print()
     print(f"Partido: {match.home_team} vs {match.away_team}")
-    print()
 
-    print("=== MERCADO ===")
+    print()
+    print("=== Mercado ===")
     print(f"Local      {market.home:.2%}")
     print(f"Empate     {market.draw:.2%}")
     print(f"Visitante  {market.away:.2%}")
 
     print()
-    print("=== MODELO ===")
-    print(f"Local      {model.home:.2%}")
-    print(f"Empate     {model.draw:.2%}")
-    print(f"Visitante  {model.away:.2%}")
+    print("=== Poisson ===")
+    print(f"Local      {poisson.home:.2%}")
+    print(f"Empate     {poisson.draw:.2%}")
+    print(f"Visitante  {poisson.away:.2%}")
 
     print()
-    print("=== VALUE ===")
-    print(f"Edge: {value.edge:.2%}")
-    print(f"EV: {value.expected_value:.2%}")
-    print(f"¿Value Bet?: {'Sí' if value.is_value_bet else 'No'}")
+    print("=== Marcador más probable ===")
+    print(
+        f"{score.home_goals}-{score.away_goals} "
+        f"({score.probability:.2%})"
+    )
 
 
 if __name__ == "__main__":
