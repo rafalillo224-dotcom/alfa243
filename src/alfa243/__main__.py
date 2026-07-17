@@ -1,14 +1,17 @@
+from pathlib import Path
+
 from alfa243.cli.console import show_prediction
 from alfa243.domain.match import Match
+from alfa243.engines.expected_goals import ExpectedGoalsEngine
 from alfa243.engines.fusion import FusionEngine
 from alfa243.engines.market import MarketEngine
 from alfa243.engines.poisson import PoissonEngine
+from alfa243.repositories.team_repository import TeamRepository
 from alfa243.services.match_statistics import MatchStatistics
 from alfa243.version import __version__
 
 
 def main() -> None:
-
     print("====================================")
     print(f"ALFA-243 v{__version__}")
     print("====================================")
@@ -21,16 +24,24 @@ def main() -> None:
         away_odds=3.20,
     )
 
-    print("\nPartido:")
-    print(f"{match.home_team} vs {match.away_team}")
+    data_path = Path("data") / "teams.csv"
+    repository = TeamRepository(data_path)
+
+    home_statistics = repository.get(match.home_team)
+    away_statistics = repository.get(match.away_team)
+
+    home_xg, away_xg = ExpectedGoalsEngine.calculate(
+        home_statistics,
+        away_statistics,
+    )
 
     market_prediction = MarketEngine().predict(match)
 
     poisson_engine = PoissonEngine()
 
     poisson_prediction = poisson_engine.predict(
-        home_expected_goals=1.8,
-        away_expected_goals=1.1,
+        home_expected_goals=home_xg,
+        away_expected_goals=away_xg,
     )
 
     fusion_prediction = FusionEngine.predict(
@@ -41,8 +52,8 @@ def main() -> None:
     )
 
     matrix = poisson_engine.score_matrix(
-        home_expected_goals=1.8,
-        away_expected_goals=1.1,
+        home_expected_goals=home_xg,
+        away_expected_goals=away_xg,
     )
 
     top_scores = MatchStatistics.top_scores(
@@ -53,6 +64,13 @@ def main() -> None:
     btts = MatchStatistics.btts(matrix)
     over_25 = MatchStatistics.over_25(matrix)
     under_25 = MatchStatistics.under_25(matrix)
+
+    print("\nPartido:")
+    print(f"{match.home_team} vs {match.away_team}")
+
+    print("\nGoles esperados:")
+    print(f"{match.home_team}: {home_xg:.2f}")
+    print(f"{match.away_team}: {away_xg:.2f}")
 
     show_prediction(
         market=market_prediction,
