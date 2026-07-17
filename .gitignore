@@ -6,3 +6,7 @@ __pycache__/
 __pycache__/
 *.pyc
 .pytest_cache/
+datos ligas/
+data/database/
+*.sqlite
+*.sqlite3
